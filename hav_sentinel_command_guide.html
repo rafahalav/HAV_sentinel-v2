@@ -1,0 +1,442 @@
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-sans);color:var(--color-text-primary)}
+  .wrap{padding:1.5rem 0}
+  .top-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+  .nav-btn{padding:6px 14px;border:0.5px solid var(--color-border-secondary);border-radius:20px;background:transparent;cursor:pointer;font-size:13px;color:var(--color-text-secondary)}
+  .nav-btn.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+  .section{display:none}
+  .section.active{display:block}
+  .cmd-list{display:flex;flex-direction:column;gap:12px}
+  .cmd-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+  .cmd-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;background:var(--color-background-primary)}
+  .cmd-header:hover{background:var(--color-background-secondary)}
+  .cmd-badge{font-family:var(--font-mono);font-size:13px;font-weight:500;padding:4px 10px;border-radius:6px;min-width:130px;text-align:center}
+  .badge-scan{background:#E6F1FB;color:#0C447C}
+  .badge-analyze{background:#EAF3DE;color:#27500A}
+  .badge-report{background:#EEEDFE;color:#3C3489}
+  .badge-vulndb{background:#FAEEDA;color:#633806}
+  .badge-network{background:#E1F5EE;color:#085041}
+  .badge-status{background:#F1EFE8;color:#444441}
+  .badge-help{background:#FBEAF0;color:#4B1528}
+  .badge-exit{background:#FCEBEB;color:#791F1F}
+  .cmd-title{font-size:14px;font-weight:500;flex:1}
+  .cmd-desc{font-size:13px;color:var(--color-text-secondary)}
+  .chevron{font-size:16px;color:var(--color-text-tertiary);transition:transform .2s}
+  .cmd-body{display:none;padding:0 16px 16px;border-top:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+  .cmd-body.open{display:block}
+  .chevron.open{transform:rotate(180deg)}
+  .step{display:flex;gap:12px;margin-top:14px}
+  .step-num{width:24px;height:24px;border-radius:50%;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;margin-top:2px}
+  .step-content{flex:1}
+  .step-content p{font-size:14px;line-height:1.6;color:var(--color-text-secondary);margin-bottom:6px}
+  .step-content p strong{color:var(--color-text-primary);font-weight:500}
+  pre{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;font-family:var(--font-mono);font-size:12px;line-height:1.7;overflow-x:auto;margin:6px 0}
+  .output-box{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;font-family:var(--font-mono);font-size:11.5px;line-height:1.8;margin:8px 0}
+  .out-ok{color:#185FA5}
+  .out-vuln{color:#A32D2D}
+  .out-warn{color:#854F0B}
+  .out-dim{color:var(--color-text-tertiary)}
+  .out-green{color:#3B6D11}
+  .tip{background:var(--color-background-info,#E6F1FB);border-left:3px solid #378ADD;padding:8px 12px;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;font-size:13px;color:var(--color-text-secondary);margin-top:10px}
+  .tip strong{color:var(--color-text-primary);font-weight:500}
+  .sev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:8px}
+  .sev-pill{text-align:center;padding:8px 6px;border-radius:var(--border-radius-md);font-size:12px;font-weight:500}
+  .sev-c{background:#FCEBEB;color:#791F1F}
+  .sev-h{background:#FAEEDA;color:#633806}
+  .sev-m{background:#FAEEDA;color:#3B6D11}
+  .sev-l{background:#E6F1FB;color:#0C447C}
+  .sev-i{background:#F1EFE8;color:#444441}
+  .subsec{margin-top:14px}
+  .subsec-label{font-size:12px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .quick-ref{display:grid;grid-template-columns:auto 1fr auto;gap:6px 16px;font-size:13px;align-items:center}
+  .qr-cmd{font-family:var(--font-mono);font-size:12px;font-weight:500;color:#185FA5}
+  .qr-desc{color:var(--color-text-secondary)}
+  .qr-badge{font-size:11px;padding:2px 7px;border-radius:10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+  .playground{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-top:1.5rem}
+  .playground-header{padding:12px 16px;background:var(--color-background-secondary);font-size:13px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary)}
+  .terminal{background:#111;color:#e2e8f0;padding:14px 16px;font-family:var(--font-mono);font-size:12.5px;line-height:1.9;min-height:120px}
+  .t-prompt{color:#63b3ed}
+  .t-cmd{color:#e2e8f0}
+  .t-out{color:#718096}
+  .t-ok{color:#68d391}
+  .t-warn{color:#f6ad55}
+  .t-err{color:#fc8181}
+  .playground-controls{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-top:0.5px solid var(--color-border-tertiary)}
+  .pg-btn{padding:6px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;font-size:12.5px;font-family:var(--font-mono);color:var(--color-text-secondary)}
+  .pg-btn:hover{background:var(--color-background-secondary)}
+  .section-title{font-size:16px;font-weight:500;margin-bottom:1rem}
+  .flow-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:1rem 0}
+  .flow-step{padding:14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary);text-align:center}
+  .flow-step .num{font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:6px}
+  .flow-step .ico{font-size:22px;margin-bottom:6px;color:#378ADD}
+  .flow-step .lbl{font-size:13px;font-weight:500}
+  .flow-step .sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px}
+  .arrow-sep{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--color-text-tertiary);margin:0 -4px;align-self:center}
+  .divider{height:0.5px;background:var(--color-border-tertiary);margin:1.5rem 0}
+</style>
+<h2 class="sr-only">Guia interativo de comandos do H.A.V. SENTINEL — selecione uma aba para ver cada comando</h2>
+<div class="wrap">
+
+  <div class="top-nav">
+    <button class="nav-btn active" onclick="showSection('ref')"><i class="ti ti-terminal" aria-hidden="true"></i> Referência</button>
+    <button class="nav-btn" onclick="showSection('scan')"><i class="ti ti-scan" aria-hidden="true"></i> scan</button>
+    <button class="nav-btn" onclick="showSection('analyze')"><i class="ti ti-code" aria-hidden="true"></i> analyze</button>
+    <button class="nav-btn" onclick="showSection('report')"><i class="ti ti-file-description" aria-hidden="true"></i> report</button>
+    <button class="nav-btn" onclick="showSection('vulndb')"><i class="ti ti-database" aria-hidden="true"></i> vulndb</button>
+    <button class="nav-btn" onclick="showSection('network')"><i class="ti ti-network" aria-hidden="true"></i> network</button>
+    <button class="nav-btn" onclick="showSection('outros')"><i class="ti ti-dots" aria-hidden="true"></i> outros</button>
+    <button class="nav-btn" onclick="showSection('playground')"><i class="ti ti-player-play" aria-hidden="true"></i> simulador</button>
+  </div>
+
+  <!-- ── REF ───────────────────────────── -->
+  <div id="sec-ref" class="section active">
+    <p class="section-title">Fluxo básico de uso</p>
+    <div class="flow-steps">
+      <div class="flow-step"><div class="num">1</div><div class="ico"><i class="ti ti-terminal-2" aria-hidden="true"></i></div><div class="lbl">Iniciar</div><div class="sub">hav_sentinel_launcher.py</div></div>
+      <div class="flow-step"><div class="num">2</div><div class="ico"><i class="ti ti-scan" aria-hidden="true"></i></div><div class="lbl">scan</div><div class="sub">escanear projeto</div></div>
+      <div class="flow-step"><div class="num">3</div><div class="ico"><i class="ti ti-code" aria-hidden="true"></i></div><div class="lbl">analyze</div><div class="sub">arquivo suspeito</div></div>
+      <div class="flow-step"><div class="num">4</div><div class="ico"><i class="ti ti-database" aria-hidden="true"></i></div><div class="lbl">vulndb</div><div class="sub">consultar CVEs</div></div>
+      <div class="flow-step"><div class="num">5</div><div class="ico"><i class="ti ti-file-description" aria-hidden="true"></i></div><div class="lbl">report</div><div class="sub">gerar relatório</div></div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-title">Todos os comandos</p>
+    <div class="quick-ref">
+      <span class="qr-cmd">scan &lt;caminho&gt;</span><span class="qr-desc">Escaneia diretório completo em busca de vulnerabilidades</span><span class="qr-badge">principal</span>
+      <span class="qr-cmd">analyze &lt;arquivo&gt;</span><span class="qr-desc">Analisa um arquivo específico em detalhe</span><span class="qr-badge">principal</span>
+      <span class="qr-cmd">report [json|html]</span><span class="qr-desc">Gera relatório do último scan executado</span><span class="qr-badge">saída</span>
+      <span class="qr-cmd">export [json|html]</span><span class="qr-desc">Exporta resultados (equivalente ao report)</span><span class="qr-badge">saída</span>
+      <span class="qr-cmd">vulndb list</span><span class="qr-desc">Lista todas as vulnerabilidades conhecidas no banco</span><span class="qr-badge">banco</span>
+      <span class="qr-cmd">vulndb search &lt;termo&gt;</span><span class="qr-desc">Busca vulnerabilidade por nome ou palavra-chave</span><span class="qr-badge">banco</span>
+      <span class="qr-cmd">network portscan &lt;host&gt;</span><span class="qr-desc">Escaneia portas abertas em um host ou IP</span><span class="qr-badge">rede</span>
+      <span class="qr-cmd">network ssl &lt;host&gt; [porta]</span><span class="qr-desc">Verifica o certificado SSL/TLS de um servidor</span><span class="qr-badge">rede</span>
+      <span class="qr-cmd">status</span><span class="qr-desc">Mostra métricas e status da sessão atual</span><span class="qr-badge">info</span>
+      <span class="qr-cmd">config</span><span class="qr-desc">Exibe as configurações carregadas pelo sistema</span><span class="qr-badge">info</span>
+      <span class="qr-cmd">clear</span><span class="qr-desc">Limpa a tela do terminal</span><span class="qr-badge">util</span>
+      <span class="qr-cmd">help</span><span class="qr-desc">Lista todos os comandos disponíveis</span><span class="qr-badge">util</span>
+      <span class="qr-cmd">exit</span><span class="qr-desc">Encerra o programa salvando a sessão</span><span class="qr-badge">util</span>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-title">Tabela de severidades</p>
+    <div class="sev-grid">
+      <div class="sev-pill sev-c"><i class="ti ti-alert-octagon" aria-hidden="true"></i><br>CRITICAL<br><span style="font-weight:400;font-size:11px">Corrigir agora</span></div>
+      <div class="sev-pill sev-h"><i class="ti ti-alert-triangle" aria-hidden="true"></i><br>HIGH<br><span style="font-weight:400;font-size:11px">Até 2 dias</span></div>
+      <div class="sev-pill sev-m"><i class="ti ti-alert-circle" aria-hidden="true"></i><br>MEDIUM<br><span style="font-weight:400;font-size:11px">Até 2 semanas</span></div>
+      <div class="sev-pill sev-l"><i class="ti ti-info-circle" aria-hidden="true"></i><br>LOW<br><span style="font-weight:400;font-size:11px">Até 1 mês</span></div>
+      <div class="sev-pill sev-i"><i class="ti ti-circle" aria-hidden="true"></i><br>INFO<br><span style="font-weight:400;font-size:11px">Informativo</span></div>
+    </div>
+  </div>
+
+  <!-- ── SCAN ───────────────────────────── -->
+  <div id="sec-scan" class="section">
+    <div class="cmd-list">
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-scan">scan</span>
+          <span class="cmd-title">Escanear um diretório</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body open">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p><strong>Inicie a CLI</strong></p><pre>python3 hav_sentinel_launcher.py --cli</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p><strong>Execute o scan</strong> apontando para o diretório do projeto</p><pre>sentinel $ scan ~/meu-projeto</pre></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><p><strong>Aguarde o processamento.</strong> O terminal exibirá o progresso em tempo real e as vulnerabilidades encontradas</p><div class="output-box"><span class="out-ok">[SCAN]</span> Iniciando análise de /home/user/meu-projeto<br><span class="out-dim">[*]</span> Processando: models.py<br><span class="out-dim">[*]</span> Processando: config.py<br><span class="out-vuln">┌─[VULNERABILITY: CRITICAL]──────────────</span><br><span class="out-vuln">│</span> Title: SQL Injection Risk<br><span class="out-vuln">│</span> Target: models.py<br><span class="out-vuln">└────────────────────────────────────────</span><br><br><span class="out-green">[+]</span> Análise concluída: 15 problemas encontrados</div></div></div>
+          <div class="tip"><strong>Dica:</strong> use caminho absoluto (<code>~/projeto</code> ou <code>/home/user/projeto</code>) para evitar erros de diretório relativo.</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-scan">scan</span>
+          <span class="cmd-title">Escanear subdiretório específico</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Para escanear apenas uma pasta dentro do projeto, use o caminho completo até ela</p><pre>sentinel $ scan ~/meu-projeto/app/controllers</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>Útil em projetos grandes para acelerar a análise de uma parte específica</p></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-scan">scan</span>
+          <span class="cmd-title">Erros comuns no scan</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="subsec"><div class="subsec-label">Erro: caminho não existe</div><div class="output-box"><span class="t-err">[-]</span> Caminho não existe: /home/user/errado</div><p style="font-size:13px;color:var(--color-text-secondary);margin-top:6px">Verifique o caminho com <code>ls ~/</code> antes de executar o scan.</p></div>
+          <div class="subsec" style="margin-top:12px"><div class="subsec-label">Erro: caminho com espaços</div><pre>sentinel $ scan "/home/user/meu projeto"   ← correto
+sentinel $ scan /home/user/meu projeto    ← errado</pre></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ANALYZE ───────────────────────── -->
+  <div id="sec-analyze" class="section">
+    <div class="cmd-list">
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-analyze">analyze</span>
+          <span class="cmd-title">Analisar arquivo Python</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body open">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Informe o caminho completo até o arquivo</p><pre>sentinel $ analyze ~/projeto/app/models.py</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>O resultado lista cada vulnerabilidade encontrada no arquivo</p><div class="output-box"><span class="out-dim">[*]</span> Analisando: models.py<br><br>Vulnerabilidades encontradas:<br><br><span class="out-vuln">1. [HIGH]</span> SQL Injection — models.py<br>   CVE: CVE-2023-XXXXX<br><br><span class="out-warn">2. [MEDIUM]</span> Missing Input Validation — models.py<br><br><span class="out-green">[+]</span> 2 vulnerabilidades encontradas</div></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-analyze">analyze</span>
+          <span class="cmd-title">Analisar arquivo .env ou config</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ analyze ~/projeto/config/settings.py
+sentinel $ analyze ~/projeto/.env</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>Detecta principalmente <strong>secrets hardcoded</strong>, debug ativado e conexões inseguras</p><div class="output-box"><span class="out-vuln">┌─[VULNERABILITY: CRITICAL]</span><br><span class="out-vuln">│</span> Title: Hardcoded Secrets<br><span class="out-vuln">│</span> File: settings.py<br><span class="out-vuln">│</span> Desc: API_KEY exposto em plain text<br><span class="out-vuln">└──────────────────────────</span></div></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-analyze">analyze</span>
+          <span class="cmd-title">Analisar requirements.txt</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ analyze ~/projeto/requirements.txt</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>Verifica se algum pacote listado possui CVEs conhecidas</p><div class="output-box">Pacotes vulneráveis encontrados:<br><br><span class="out-warn">●</span> django==2.0.0 → CVE-2019-XXXX [HIGH]<br>  Recomendação: atualize para django>=3.0.0<br><br><span class="out-warn">●</span> requests==2.20.0 → CVE-2018-XXXX [MEDIUM]<br>  Recomendação: atualize para requests>=2.28.0</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── REPORT ──────────────────────── -->
+  <div id="sec-report" class="section">
+    <div class="cmd-list">
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-report">report html</span>
+          <span class="cmd-title">Gerar relatório HTML visual</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body open">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Execute um scan antes de gerar relatório</p><pre>sentinel $ scan ~/projeto</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>Gere o relatório HTML</p><pre>sentinel $ report html</pre></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><p>O caminho do arquivo é exibido. Abra no navegador</p><div class="output-box"><span class="out-green">[+]</span> Relatório HTML gerado:<br>    ~/hav_reports/report_20260525_143022.html</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><p>Para abrir no navegador diretamente:</p><pre>open ~/hav_reports/report_20260525_143022.html      # macOS
+xdg-open ~/hav_reports/report_20260525_143022.html  # Linux</pre></div></div>
+          <div class="tip"><strong>O relatório HTML contém:</strong> dashboard visual, estatísticas por severidade, tabela de vulnerabilidades e recomendações de remediação.</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-report">report json</span>
+          <span class="cmd-title">Gerar relatório JSON para integração</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ report json</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>O arquivo JSON estruturado fica salvo em <code>~/hav_reports/</code></p><div class="output-box"><span class="out-dim">{ "tool": "H.A.V. SENTINEL",</span><br><span class="out-dim">  "summary": { "critical": 2, "high": 5 },</span><br><span class="out-dim">  "findings": [ ... ] }</span></div></div></div>
+          <div class="tip"><strong>Use JSON</strong> para integrar com CI/CD, scripts bash, ou dashboards externos.</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-report">report</span>
+          <span class="cmd-title">Gerar ambos os formatos</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Sem parâmetro, gera JSON e HTML ao mesmo tempo</p><pre>sentinel $ report</pre><div class="output-box"><span class="out-green">[+]</span> Relatório JSON gerado: ~/hav_reports/report_*.json<br><span class="out-green">[+]</span> Relatório HTML gerado: ~/hav_reports/report_*.html</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VULNDB ──────────────────────── -->
+  <div id="sec-vulndb" class="section">
+    <div class="cmd-list">
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-vulndb">vulndb list</span>
+          <span class="cmd-title">Listar todas as vulnerabilidades</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body open">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ vulndb list</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>O banco exibe tipo, CVE, severidade e como corrigir</p><div class="output-box"><span class="out-vuln">●</span> SQL_INJECTION — CRITICAL — CVE-2023-XXXXX<br>  Remediação: Use prepared statements<br><br><span class="out-warn">●</span> XSS — HIGH — CVE-2023-XXXXX<br>  Remediação: Validate and encode output<br><br><span class="out-warn">●</span> WEAK_AUTH — HIGH — CWE-521<br>  Remediação: Implement MFA, OAuth2<br><br><span class="out-dim">●</span> MISSING_VALIDATION — MEDIUM — CWE-20<br>  Remediação: Comprehensive input validation</div></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-vulndb">vulndb search</span>
+          <span class="cmd-title">Buscar vulnerabilidade específica</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Informe o termo de busca após <code>search</code></p><pre>sentinel $ vulndb search XSS
+sentinel $ vulndb search INJECTION
+sentinel $ vulndb search SECRET</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>Retorna apenas as entradas que contêm o termo no nome ou na remediação</p><div class="output-box">Buscando: XSS<br><br><span class="out-warn">●</span> XSS — HIGH<br>  CVE: CVE-2023-XXXXX<br>  Remediação: Implement proper input validation and output encoding</div></div></div>
+          <div class="tip"><strong>Dica:</strong> use o resultado de um scan para buscar informações de remediação. Ex.: scan encontrou <em>HARDCODED_SECRETS</em>? Execute <code>vulndb search SECRET</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NETWORK ──────────────────────── -->
+  <div id="sec-network" class="section">
+    <div class="cmd-list">
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-network">network portscan</span>
+          <span class="cmd-title">Escanear portas de um servidor</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body open">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Informe o IP ou domínio após <code>portscan</code></p><pre>sentinel $ network portscan 192.168.1.100
+sentinel $ network portscan example.com</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>O sistema testa as portas mais comuns em paralelo (15–30 segundos)</p><div class="output-box"><span class="out-ok">[SCAN]</span> Iniciando port scan em 192.168.1.100<br><br><span class="out-green">✓</span> Porta 22  — ABERTA  (SSH)<br><span class="out-green">✓</span> Porta 80  — ABERTA  (HTTP)<br><span class="out-green">✓</span> Porta 443 — ABERTA  (HTTPS)<br><span class="out-dim">✗</span> Porta 3306 — FECHADA (MySQL)<br><span class="out-dim">✗</span> Porta 5432 — FECHADA (PostgreSQL)<br><span class="out-dim">✗</span> Porta 6379 — FECHADA (Redis)</div></div></div>
+          <div class="tip"><strong>Portas perigosas se abertas:</strong> 22 exposto na internet = risco de brute force SSH. 3306/5432/27017 abertos publicamente = banco de dados exposto, risco crítico.</div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-network">network ssl</span>
+          <span class="cmd-title">Verificar certificado SSL/TLS</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><p>Porta padrão é 443. Para outra porta, informe como terceiro argumento</p><pre>sentinel $ network ssl example.com
+sentinel $ network ssl example.com 8443</pre></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><p>Exibe status, subject e data de expiração</p><div class="output-box">Certificado SSL/TLS:<br><br><span class="out-green">Status: Válido</span><br>Subject: {'commonName': 'example.com'}<br>Válido até: May 25, 2027<br><br>— ou —<br><br><span class="out-err">Status: Inválido</span><br>Erro: certificate has expired</div></div></div>
+          <div class="tip"><strong>Se expirado:</strong> os navegadores bloqueiam o acesso. Renove o certificado imediatamente com Let's Encrypt ou seu provedor.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OUTROS ──────────────────────── -->
+  <div id="sec-outros" class="section">
+    <div class="cmd-list">
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-status">status</span>
+          <span class="cmd-title">Ver métricas da sessão</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ status</pre><div class="output-box">Versão:       2.0.0<br>Build:        SENTINEL VIGILANCE<br>Target:       ~/meu-projeto<br>Scans:        3<br>Vulns total:  27<br>Críticas/Altas: 12<br>Relatórios:   ~/hav_reports</div></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-help">help</span>
+          <span class="cmd-title">Listar todos os comandos</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ help</pre><p style="font-size:13px;color:var(--color-text-secondary);margin-top:6px">Exibe a lista completa de comandos com a sintaxe de cada um.</p></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge" style="background:#F1EFE8;color:#444441">config</span>
+          <span class="cmd-title">Ver configurações do sistema</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ config</pre><div class="output-box">Modelo IA:       claude-sonnet-4-20250514<br>Anthropic OK:    Sim<br>Arquivo de log:  ~/.hav_logs/sentinel_*.log</div></div></div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header" onclick="toggle(this)">
+          <span class="cmd-badge badge-exit">exit</span>
+          <span class="cmd-title">Encerrar o programa</span>
+          <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+        </div>
+        <div class="cmd-body">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><pre>sentinel $ exit</pre><div class="output-box"><span class="out-dim">Encerrando H.A.V. SENTINEL</span><br><span class="out-dim">Scans: 3 | Vulnerabilidades: 27</span></div><p style="font-size:13px;color:var(--color-text-secondary);margin-top:6px">A sessão é salva automaticamente. Não use Ctrl+C — prefira sempre <code>exit</code>.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLAYGROUND ──────────────────── -->
+  <div id="sec-playground" class="section">
+    <div class="playground">
+      <div class="playground-header"><i class="ti ti-terminal" aria-hidden="true"></i> Simulador de Terminal — clique em um comando para ver o resultado</div>
+      <div class="terminal" id="term">
+        <div><span class="t-prompt">sentinel $</span> <span class="t-cmd" id="term-cmd">_</span></div>
+        <div id="term-out" style="margin-top:6px;white-space:pre-wrap"></div>
+      </div>
+      <div class="playground-controls">
+        <button class="pg-btn" onclick="simulate('scan ~/projeto')">scan ~/projeto</button>
+        <button class="pg-btn" onclick="simulate('analyze models.py')">analyze models.py</button>
+        <button class="pg-btn" onclick="simulate('report html')">report html</button>
+        <button class="pg-btn" onclick="simulate('vulndb list')">vulndb list</button>
+        <button class="pg-btn" onclick="simulate('vulndb search XSS')">vulndb search XSS</button>
+        <button class="pg-btn" onclick="simulate('network portscan 192.168.1.1')">network portscan</button>
+        <button class="pg-btn" onclick="simulate('network ssl example.com')">network ssl</button>
+        <button class="pg-btn" onclick="simulate('status')">status</button>
+        <button class="pg-btn" onclick="simulate('help')">help</button>
+        <button class="pg-btn" onclick="simulate('exit')">exit</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const outputs = {
+  'scan ~/projeto': `[SCAN] Iniciando análise de /home/user/projeto\n[*] Processando: models.py\n[*] Processando: config.py\n[*] Processando: requirements.txt\n\n┌─[VULNERABILITY: CRITICAL]──────────────\n│ Title: SQL Injection Risk\n│ Target: models.py\n└────────────────────────────────────────\n\n┌─[VULNERABILITY: HIGH]──────────────────\n│ Title: Hardcoded Secrets\n│ Target: config.py\n└────────────────────────────────────────\n\n[+] Análise concluída: 8 problemas\n    CRITICAL: 2  HIGH: 3  MEDIUM: 2  LOW: 1`,
+  'analyze models.py': `[*] Analisando: models.py\n\nVulnerabilidades encontradas:\n\n1. [HIGH] SQL Injection — models.py\n   CVE: CVE-2023-XXXXX\n\n2. [MEDIUM] Missing Input Validation\n   CVE: CWE-20\n\n[+] 2 vulnerabilidades encontradas`,
+  'report html': `[+] Relatório HTML gerado:\n    ~/hav_reports/report_20260525_143022.html\n\nAbra no navegador para visualizar o dashboard.`,
+  'vulndb list': `Vulnerabilidades conhecidas:\n\n● SQL_INJECTION — CRITICAL\n  CVE: CVE-2023-XXXXX\n  Remediação: Use prepared statements\n\n● XSS — HIGH\n  CVE: CVE-2023-XXXXX\n  Remediação: Validate and encode output\n\n● WEAK_AUTH — HIGH — CWE-521\n  Remediação: Implement MFA / OAuth2\n\n● HARDCODED_SECRETS — HIGH — CWE-798\n  Remediação: Use environment variables\n\n● INSECURE_CRYPTO — HIGH\n  Remediação: Use SHA-256 or stronger\n\n● MISSING_VALIDATION — MEDIUM — CWE-20\n  Remediação: Implement input validation`,
+  'vulndb search XSS': `Buscando: XSS\n\n● XSS — HIGH\n  CVE: CVE-2023-XXXXX\n  Remediação: Implement proper input validation\n  and output encoding (e.g. HTML escape)`,
+  'network portscan 192.168.1.1': `[SCAN] Iniciando port scan em 192.168.1.1\n\n✓ Porta 22  — ABERTA  (SSH)\n✓ Porta 80  — ABERTA  (HTTP)\n✓ Porta 443 — ABERTA  (HTTPS)\n✗ Porta 3306 — FECHADA\n✗ Porta 5432 — FECHADA\n✗ Porta 6379 — FECHADA\n✗ Porta 27017 — FECHADA`,
+  'network ssl example.com': `Certificado SSL/TLS:\n\nStatus: Válido\nSubject: {'commonName': 'example.com',\n          'organizationName': 'Example Inc'}\nVálido até: May 25, 2027`,
+  'status': `Versão:         2.0.0\nBuild:          SENTINEL VIGILANCE\nTarget Atual:   ~/projeto\nScans:          3\nVulns total:    27\nCríticas/Altas: 12\nRelatórios:     ~/hav_reports`,
+  'help': `scan <caminho>           Escaneia diretório\nanalyze <arquivo>        Analisa arquivo específico\nreport [json|html]       Gera relatório\nvulndb [list|search]     Banco de vulnerabilidades\nnetwork [portscan|ssl]   Testes de rede\nstatus                   Status da sessão\nconfig                   Configurações\nexport <formato>         Exporta resultados\nclear                    Limpa tela\nhelp                     Esta mensagem\nexit                     Sair`,
+  'exit': `Encerrando H.A.V. SENTINEL...\nScans: 3 | Vulnerabilidades: 27\nSessão salva.`
+};
+
+function simulate(cmd) {
+  document.getElementById('term-cmd').textContent = cmd;
+  const out = document.getElementById('term-out');
+  out.textContent = '';
+  const text = outputs[cmd] || 'Comando não reconhecido.';
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i < text.length) { out.textContent += text[i++]; } else { clearInterval(iv); }
+  }, 8);
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+}
+</script>

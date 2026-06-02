@@ -1,0 +1,22 @@
+# H.A.V. SENTINEL v2.0 - Dependências Python
+# Installation: pip install -r requirements.txt
+
+# Core Dependencies
+requests>=2.31.0          # HTTP library para requisições
+anthropic>=0.7.0          # API Anthropic para integração com Claude
+
+# Optional but Recommended
+paramiko>=3.0.0          # SSH/SFTP client
+pyyaml>=6.0              # YAML parser
+cryptography>=40.0.0     # Cryptographic recipes
+
+# Development (Optional)
+pytest>=7.0.0            # Testing framework
+black>=23.0.0            # Code formatter
+flake8>=5.0.0            # Code linter
+mypy>=1.0.0              # Static type checker
+
+# Note: tkinter comes built-in with Python
+# For Ubuntu/Debian: sudo apt-get install python3-tk
+# For macOS: brew install python-tk
+# For Windows: Use Python installer with "tcl/tk" option
